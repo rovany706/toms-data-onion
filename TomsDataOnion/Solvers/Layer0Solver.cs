@@ -1,10 +1,18 @@
-﻿using System.Text;
+﻿namespace TomsDataOnion.Solvers;
 
-namespace TomsDataOnion.Solvers;
-
+/// <summary>
+/// ASCII85 decoder
+/// </summary>
 public class Layer0Solver : ISolver
 {
     public string Solve(string content)
+    {
+        var decodedBytes = GetSolutionAsBytes(content);
+
+        return SolverHelper.BytesToString(decodedBytes);
+    }
+
+    public static byte[] GetSolutionAsBytes(string content)
     {
         content = content.Replace("\n", "");
         content = content.Replace("\r", "");
@@ -14,9 +22,9 @@ public class Layer0Solver : ISolver
 
         var endPaddingCount = content.Length % 5;
         content = content.PadRight(content.Length + 5 - endPaddingCount, 'u');
-        
+
         var powers85 = new[] { 85 * 85 * 85 * 85, 85 * 85 * 85, 85 * 85, 85, 1 };
-        var builder = new StringBuilder();
+        var decodedBytes = new List<byte>();
 
         for (var i = 0; i < content.Length; i += 5)
         {
@@ -31,10 +39,10 @@ public class Layer0Solver : ISolver
                 sum += c * powers85[j];
             }
 
-            var decoded = Encoding.ASCII.GetString(BitConverter.GetBytes(sum).Reverse().ToArray());
-            builder.Append(decoded);
+            var bytes = BitConverter.GetBytes(sum).Reverse().ToArray();
+            decodedBytes.AddRange(bytes);
         }
 
-        return builder.ToString();
+        return decodedBytes.ToArray();
     }
 }
